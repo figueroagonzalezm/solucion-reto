@@ -7,3 +7,12 @@
   .example-full-width {
     width: 100%;
   }
+
+.form-error {
+    color: #f44336;
+    background: #fdecea;
+    border: 1px solid #f44336;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+}

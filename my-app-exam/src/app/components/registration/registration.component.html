@@ -3,26 +3,43 @@
     <mat-label>Customer Registration</mat-label>
 </div>
 
-<div>
-    <mat-form-field class="example-full-width" appearance="fill">
-    <mat-label>First Name</mat-label>
-    <input matInput placeholder="First Name" [(ngModel)]="firstName">
-    </mat-form-field>
+<form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
+    <div>
+        <mat-form-field class="example-full-width" appearance="fill">
+            <mat-label>First Name</mat-label>
+            <input matInput placeholder="First Name" formControlName="firstName" required>
+            <mat-error *ngIf="form.get('firstName')?.hasError('required')">First Name is required</mat-error>
+        </mat-form-field>
 
-    <mat-form-field class="example-full-width" appearance="fill">
-    <mat-label>Last Name</mat-label>
-    <input matInput placeholder="Last Name" [(ngModel)]="lastName">
-    </mat-form-field>
+        <mat-form-field class="example-full-width" appearance="fill">
+            <mat-label>Last Name</mat-label>
+            <input matInput placeholder="Last Name" formControlName="lastName" required>
+            <mat-error *ngIf="form.get('lastName')?.hasError('required')">Last Name is required</mat-error>
+        </mat-form-field>
 
-    <mat-form-field class="example-full-width" appearance="fill">
-    <mat-label>Phone</mat-label>
-        <input matInput placeholder="Phone" [(ngModel)]="phone">
-    </mat-form-field>
-</div>
+        <mat-form-field class="example-full-width" appearance="fill">
+            <mat-label>Phone</mat-label>
+            <input matInput placeholder="Phone" formControlName="phone" inputmode="numeric" required>
+            <mat-error *ngIf="form.get('phone')?.hasError('required')">Phone is required</mat-error>
+            <mat-error *ngIf="form.get('phone')?.hasError('pattern')">Phone must contain digits only</mat-error>
+        </mat-form-field>
 
-<div fxLayout="row" fxLayoutAlign="end center">
-    <button mat-raised-button  color="primary" (click)="onSave()">Save</button>
-</div>
+        <mat-form-field class="example-full-width" appearance="fill">
+            <mat-label>Email</mat-label>
+            <input matInput placeholder="user@domain.com" formControlName="email" type="email" required>
+            <mat-error *ngIf="form.get('email')?.hasError('required')">Email is required</mat-error>
+            <mat-error *ngIf="!form.get('email')?.hasError('required') && (form.get('email')?.hasError('email') || form.get('email')?.hasError('pattern'))">
+                Enter a valid email (user@domain.com)
+            </mat-error>
+        </mat-form-field>
+    </div>
+
+    <div class="form-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</div>
+
+    <div fxLayout="row" fxLayoutAlign="end center">
+        <button mat-raised-button color="primary" type="submit">Save</button>
+    </div>
+</form>
 
 <div fxLayout="row" style="padding-top: 40px">
     <mat-table matTableResponsive [dataSource]="dataSource" #table fxFill="100">
@@ -46,17 +63,19 @@
         <mat-cell *matCellDef="let element"> {{element.phone}} </mat-cell>
         </ng-container>
 
+        <ng-container matColumnDef="email">
+        <mat-header-cell *matHeaderCellDef>Email</mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{element.email}} </mat-cell>
+        </ng-container>
+
         <ng-container matColumnDef="actions">
-            <mat-header-cell *matHeaderCellDef mat-sort-header></mat-header-cell>
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
             <mat-cell *matCellDef="let element">
-              <div class="button">
-                <button mat-button><i class="fa fa-delete" *ngIf="element.id"></i> Delete </button>
-              </div>
-            </mat-cell >
+              <button mat-button color="warn" type="button" (click)="onDelete(element)">Delete</button>
+            </mat-cell>
         </ng-container>
 
         <mat-header-row *matHeaderRowDef="displayedColumns; sticky:true"></mat-header-row>
         <mat-row  *matRowDef="let row; columns: displayedColumns;"></mat-row>
     </mat-table>
 </div>
-

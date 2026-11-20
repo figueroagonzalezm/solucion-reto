@@ -5,6 +5,7 @@ import { Client } from '../interfaces/client';
 
 import {  throwError } from 'rxjs';
 import { retry, catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 
 const httpOptions = {
@@ -23,7 +24,7 @@ const httpOptions = {
   providedIn: 'root',
 })
 export class ClientService {
-  private urlClients = 'http://localhost:8080/api'; 
+  private urlClients = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
@@ -48,5 +49,9 @@ export class ClientService {
 
   public getClients(): Observable<any> {
     return this.http.get(this.urlClients + "/clients").pipe(catchError(this.handleError));
+  }
+
+  public deleteClient(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.urlClients}/clients/${id}`).pipe(catchError(this.handleError));
   }
 }

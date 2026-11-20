@@ -1,68 +1,91 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
+import { MatTableDataSource } from '@angular/material/table';
 
 import { ClientService } from '../../services/client.service';
 import { Client } from '../../interfaces/client';
-import { MatTableDataSource } from '@angular/material/table';
 
-const clientCollection: Client[] = [];
+// Standard user@domain.tld format (Validators.email alone accepts "user@host")
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'app-registration',
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css']
 })
-
 export class RegistrationComponent implements OnInit {
 
-  name: string = "";
-  firstName : string = "";
-  lastName: string = "";
-  phone: string = "";
+  @ViewChild(FormGroupDirective) formDirective!: FormGroupDirective;
 
-  displayedColumns: string[] = ['id', 'firstName', 'lastName', 'phone', 'actions'];
-  dataSource = new MatTableDataSource(clientCollection);
+  readonly fieldLabels: { [key: string]: string } = {
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    phone: 'Phone',
+    email: 'Email'
+  };
 
-  constructor(private clientService: ClientService) { }
+  form: FormGroup = this.fb.group({
+    firstName: ['', Validators.required],
+    lastName: ['', Validators.required],
+    phone: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(EMAIL_PATTERN)]]
+  });
+
+  errorMessage = '';
+
+  displayedColumns: string[] = ['id', 'firstName', 'lastName', 'phone', 'email', 'actions'];
+  dataSource = new MatTableDataSource<Client>([]);
+
+  constructor(private fb: FormBuilder, private clientService: ClientService) { }
 
   ngOnInit(): void {
     this.getClients();
   }
 
-  onSave(){  
-    let client: Client;
-    client = {
-         id:  0,
-         firstName:  this.firstName,
-         lastName:  this.lastName,
-         phone:  this.phone
-    } 
+  onSave(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.errorMessage = this.buildErrorMessage();
+      return;
+    }
+    this.errorMessage = '';
 
-    this.clientService.saveClient(client).subscribe((data: any[])=>{
-      alert("Cliente guardado correctamente.");
+    const client: Client = { id: 0, ...this.form.value };
+
+    this.clientService.saveClient(client).subscribe(() => {
+      // resetForm also clears the "submitted" state so fields don't show red
+      this.formDirective.resetForm();
       this.getClients();
-    })  
+    });
   }
 
-  getClients(){  
-    this.clientService.getClients()
-    .subscribe(
-      (data) => {
-        
-        this.dataSource.data = [];
-        clientCollection.length = 0;
+  onDelete(client: Client): void {
+    this.clientService.deleteClient(client.id).subscribe(() => this.getClients());
+  }
 
-        data.forEach(function (client: Client, index: number) {
-          clientCollection.push(
-            {
-              id: client.id, 
-              firstName: client.firstName,
-              lastName: client.lastName, 
-              phone: client.phone, 
-            });
-        });
+  getClients(): void {
+    this.clientService.getClients().subscribe((data: Client[]) => {
+      this.dataSource.data = data;
+    });
+  }
 
-         this.dataSource = new MatTableDataSource(clientCollection);
+  private buildErrorMessage(): string {
+    const missing: string[] = [];
+    const invalid: string[] = [];
+
+    Object.keys(this.fieldLabels).forEach(key => {
+      const errors = this.form.get(key)?.errors;
+      if (!errors) { return; }
+      if (errors['required']) {
+        missing.push(this.fieldLabels[key]);
+      } else {
+        invalid.push(this.fieldLabels[key]);
       }
-    );
+    });
+
+    const parts: string[] = [];
+    if (missing.length) { parts.push(`Required fields missing: ${missing.join(', ')}.`); }
+    if (invalid.length) { parts.push(`Invalid format: ${invalid.join(', ')}.`); }
+    return parts.join(' ');
   }
 }
