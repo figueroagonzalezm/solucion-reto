@@ -87,6 +87,28 @@ Build and run the tests (requires the database to be running):
 | `POST` | `/api/client` | Create a client | `200` |
 | `DELETE` | `/api/clients/{id}` | Delete a client | `204` deleted, `404` not found |
 
+### Error format
+
+All errors are handled in one place (`GlobalExceptionHandler`, a `@RestControllerAdvice`) and
+return the same JSON body:
+
+```json
+{
+  "timestamp": "2026-11-20T15:32:15.955Z",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Client with id 99999 not found",
+  "path": "/api/clients/99999"
+}
+```
+
+| Status | When |
+|--------|------|
+| `400` | Malformed or missing JSON body, or a non-numeric `{id}` |
+| `404` | The client does not exist |
+| `409` | The data violates a database constraint (e.g. a value longer than the column) |
+| `500` | Unexpected or database error (details are logged, never returned) |
+
 Example:
 
 ```bash

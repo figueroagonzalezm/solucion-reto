@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.exam.test.exception.ClientNotFoundException;
 import com.exam.test.model.Client;
 import com.exam.test.model.dtos.ClientDto;
 import com.exam.test.respository.IClientRepository;
@@ -65,8 +66,10 @@ public class ClientService implements IClientService {
 	}
 
 	@Override
-	public boolean deleteById(int id) {
-		return clientRepository.deleteById(id) > 0;
+	public void deleteById(int id) {
+		if (clientRepository.deleteById(id) == 0) {
+			throw new ClientNotFoundException(id);
+		}
 	}
 
 }

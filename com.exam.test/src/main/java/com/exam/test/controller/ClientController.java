@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.exam.test.exception.ErrorResponse;
 import com.exam.test.model.dtos.ClientDto;
 import com.exam.test.model.dtos.ServiceResponse;
 import com.exam.test.service.IClientService;
@@ -51,7 +52,11 @@ public class ClientController {
 	@Operation(summary = "Create client", description = "Saves a new client.")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Result of the save operation",
-				content = @Content(schema = @Schema(implementation = ServiceResponse.class)))
+				content = @Content(schema = @Schema(implementation = ServiceResponse.class))),
+		@ApiResponse(responseCode = "400", description = "Malformed JSON body",
+				content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+		@ApiResponse(responseCode = "409", description = "Data violates a database constraint",
+				content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<ServiceResponse> saveClient(
 			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Client data to save")
@@ -71,14 +76,16 @@ public class ClientController {
 	@Operation(summary = "Delete client", description = "Deletes the client with the given id.")
 	@ApiResponses({
 		@ApiResponse(responseCode = "204", description = "Client deleted", content = @Content),
-		@ApiResponse(responseCode = "404", description = "Client not found", content = @Content)
+		@ApiResponse(responseCode = "400", description = "Invalid id",
+				content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+		@ApiResponse(responseCode = "404", description = "Client not found",
+				content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<Void> deleteClient(
 			@Parameter(description = "Identifier of the client to delete", example = "1")
 			@PathVariable int id) {
-		return clientService.deleteById(id)
-				? ResponseEntity.noContent().build()
-				: ResponseEntity.notFound().build();
+		clientService.deleteById(id);
+		return ResponseEntity.noContent().build();
 	}
 
 }
