@@ -22,7 +22,7 @@ public class ClientRepository implements IClientRepository {
 
 	@Override
 	public int save(Client client) {		
-		return jdbcTemplate.update("insert into clients values (?, ?, ?, ?)", new Object[] {client.getFirstName(), client.getLastName(), client.getSurname(), client.getPhone()});
+		return jdbcTemplate.update("insert into clients (first_name, last_name, surname, phone) values (?, ?, ?, ?)", new Object[] {client.getFirstName(), client.getLastName(), client.getSurname(), client.getPhone()});
 	}
 
 }
