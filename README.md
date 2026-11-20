@@ -87,6 +87,34 @@ Build and run the tests (no database needed, see [Tests](#tests)):
 | `POST` | `/api/client` | Create a client | `200` |
 | `DELETE` | `/api/clients/{id}` | Delete a client | `204` deleted, `404` not found |
 
+### Validation
+
+`POST /api/client` validates the body on the server (Bean Validation), using the same rules as the
+Angular form:
+
+| Field | Rules |
+|-------|-------|
+| `firstName`, `lastName` | required (not blank), max 100 characters |
+| `surname` | optional, max 100 characters |
+| `phone` | required, digits only, max 30 characters |
+| `email` | required, `user@domain.com` format, max 150 characters |
+
+An invalid request returns `400` with a per-field `errors` map and stores nothing:
+
+```json
+{
+  "timestamp": "2026-11-20T16:04:19.742Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation failed: email must be a valid email (user@domain.com); phone must contain digits only",
+  "path": "/api/client",
+  "errors": {
+    "email": "must be a valid email (user@domain.com)",
+    "phone": "must contain digits only"
+  }
+}
+```
+
 ### Error format
 
 All errors are handled in one place (`GlobalExceptionHandler`, a `@RestControllerAdvice`) and
@@ -104,7 +132,7 @@ return the same JSON body:
 
 | Status | When |
 |--------|------|
-| `400` | Malformed or missing JSON body, or a non-numeric `{id}` |
+| `400` | Malformed or missing JSON body, validation failed (see below), or a non-numeric `{id}` |
 | `404` | The client does not exist |
 | `409` | The data violates a database constraint (e.g. a value longer than the column) |
 | `500` | Unexpected or database error (details are logged, never returned) |

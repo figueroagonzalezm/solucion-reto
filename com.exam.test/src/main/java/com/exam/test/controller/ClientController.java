@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -49,14 +50,14 @@ public class ClientController {
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Result of the save operation",
 				content = @Content(schema = @Schema(implementation = ServiceResponse.class))),
-		@ApiResponse(responseCode = "400", description = "Malformed JSON body",
+		@ApiResponse(responseCode = "400", description = "Malformed JSON body or validation failed (see the errors field)",
 				content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
 		@ApiResponse(responseCode = "409", description = "Data violates a database constraint",
 				content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<ServiceResponse> saveClient(
 			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Client data to save")
-			@RequestBody ClientDto client) {
+			@Valid @RequestBody ClientDto client) {
 		ServiceResponse serviceReponse = new ServiceResponse();
 		clientService.save(client);
 		serviceReponse.setSuccess(true);

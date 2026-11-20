@@ -1,6 +1,10 @@
 package com.exam.test.exception;
 
 import java.time.Instant;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +13,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -33,6 +38,22 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex,
 			HttpServletRequest request) {
 		return build(HttpStatus.BAD_REQUEST, "Malformed or missing JSON request body", request);
+	}
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex,
+			HttpServletRequest request) {
+		// field -> messages, sorted so the response is deterministic
+		Map<String, TreeSet<String>> byField = new TreeMap<>();
+		ex.getBindingResult().getFieldErrors().forEach(
+				e -> byField.computeIfAbsent(e.getField(), k -> new TreeSet<>()).add(e.getDefaultMessage()));
+
+		Map<String, String> errors = new TreeMap<>();
+		byField.forEach((field, messages) -> errors.put(field, String.join(", ", messages)));
+
+		String details = errors.entrySet().stream().map(e -> e.getKey() + " " + e.getValue())
+				.collect(Collectors.joining("; "));
+		return build(HttpStatus.BAD_REQUEST, "Validation failed: " + details, errors, request);
 	}
 
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -62,8 +83,13 @@ public class GlobalExceptionHandler {
 	}
 
 	private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, HttpServletRequest request) {
+		return build(status, message, null, request);
+	}
+
+	private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, Map<String, String> errors,
+			HttpServletRequest request) {
 		ErrorResponse body = new ErrorResponse(Instant.now(), status.value(), status.getReasonPhrase(), message,
-				request.getRequestURI());
+				request.getRequestURI(), errors);
 		return ResponseEntity.status(status).body(body);
 	}
 }

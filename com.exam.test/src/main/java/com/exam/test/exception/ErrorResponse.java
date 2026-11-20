@@ -1,6 +1,9 @@
 package com.exam.test.exception;
 
 import java.time.Instant;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -8,6 +11,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Error returned by the API")
 public class ErrorResponse {
 
@@ -25,4 +29,8 @@ public class ErrorResponse {
 
 	@Schema(description = "Request path", example = "/api/clients/99")
 	private String path;
+
+	@Schema(description = "Validation problems by field (only present on validation errors)",
+			example = "{\"phone\": \"must contain digits only\"}")
+	private Map<String, String> errors;
 }
