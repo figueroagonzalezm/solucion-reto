@@ -1,0 +1,6 @@
+# Local-only: exam statement, other roles exams, IDE workspace
+*.docx
+*.pdf
+examen-practico.md
+.metadata/
+.playwright-mcp/
