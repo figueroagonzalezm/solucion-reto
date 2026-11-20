@@ -28,8 +28,9 @@ See [`SOLUTION.md`](SOLUTION.md) for what was implemented and the technical deci
 
 ## 1. Database
 
-The API expects a PostgreSQL database named `db_test` with user `test` / password `test`
-(defaults, see [Configuration](#configuration)).
+The API expects a PostgreSQL database named `db_test` with user `test` / password `test` when run
+locally with the `dev` profile (see [Configuration](#configuration)). Those credentials are for a
+developer machine only.
 
 ### Option A — Docker
 
@@ -68,6 +69,7 @@ cd com.exam.test
 ./mvnw spring-boot:run          # Windows cmd: mvnw.cmd spring-boot:run
 ```
 
+`spring-boot:run` activates the `dev` profile automatically (see [Configuration](#configuration)).
 The API starts on **http://localhost:8080**.
 
 - Swagger UI: http://localhost:8080/swagger-ui.html
@@ -151,14 +153,37 @@ curl -i -X DELETE http://localhost:8080/api/clients/1
 
 ### Configuration
 
-Database settings are read from environment variables, with these defaults
-(`com.exam.test/src/main/resources/application.properties`):
+**Database credentials have no default.** `application.properties` reads them from environment
+variables and the API **refuses to start** (with a message naming what is missing) if any is unset:
+
+| Variable | Description | Value in the `dev` profile |
+|----------|-------------|----------------------------|
+| `DB_URL` | JDBC URL | `jdbc:postgresql://localhost:5432/db_test` |
+| `DB_USER` | Database user | `test` |
+| `DB_PASSWORD` | Database password | `test` |
+
+For local development the **`dev` profile** (`application-dev.properties`) supplies those values.
+Environment variables still take precedence over it, so you can point `dev` at a different database
+without editing files. How to run it:
+
+```bash
+# Local development: `dev` profile, activated automatically by spring-boot:run
+./mvnw spring-boot:run
+
+# Packaged jar, local development
+java -jar target/test-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
+
+# Any other environment: no profile, explicit secrets
+DB_URL=jdbc:postgresql://db-host:5432/app DB_USER=app DB_PASSWORD=... java -jar target/test-0.0.1-SNAPSHOT.jar
+```
+
+In an IDE (STS, IntelliJ) set the active profile to `dev` in the run configuration
+(`spring.profiles.active=dev`).
+
+Other settings:
 
 | Variable | Default |
 |----------|---------|
-| `DB_URL` | `jdbc:postgresql://localhost:5432/db_test` |
-| `DB_USER` | `test` |
-| `DB_PASSWORD` | `test` |
 | `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:4200` |
 
 `APP_CORS_ALLOWED_ORIGINS` is a comma-separated list of browser origins allowed to call `/api/**`
