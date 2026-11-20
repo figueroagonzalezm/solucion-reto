@@ -153,6 +153,35 @@ Open **http://localhost:4200**. The API URL is set in
 - The form is cleared after a successful save.
 - Each row of the table has a **Delete** button (calls `DELETE /api/clients/{id}`).
 
+## Tests
+
+### API (JUnit 5 + Mockito + MockMvc)
+
+```bash
+cd com.exam.test
+./mvnw test
+```
+
+- `ClientControllerTest` (`@WebMvcTest`): every endpoint and error mapping of
+  `GlobalExceptionHandler` (200, 204, 400, 404, 409, 500). No database needed.
+- `ClientServiceTest`: entity/DTO mapping (including `email`) and the not-found case on delete.
+- `TestApplicationTests`: checks that the Spring context starts, so it **does** need PostgreSQL running.
+
+### Frontend (Jasmine + Karma)
+
+```bash
+cd my-app-exam
+npm run test:ci                 # one run in headless Chrome (needs Chrome installed)
+npm test                        # watch mode in a Chrome window
+```
+
+- `registration.component.spec.ts`: the 7 form requirements (required-field message and red
+  fields, form reset after saving, email field, numeric phone, email format, delete button).
+- `client.service.spec.ts`: URLs and HTTP verbs for list, create and delete, plus API error messages.
+- `app.component.spec.ts`: the app shell.
+
+If Chrome is not on the default path, set `CHROME_BIN` to its executable.
+
 ## Project structure
 
 ```
