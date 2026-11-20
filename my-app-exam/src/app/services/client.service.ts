@@ -35,8 +35,9 @@ export class ClientService {
       // Client-side errors
       errorMessage = `Error: ${error.error.message}`;
     } else {
-      // Server-side errors
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      // Server-side errors: prefer the message from the API's ErrorResponse body
+      const apiMessage = error.error?.message ?? error.message;
+      errorMessage = `Error Code: ${error.status}\nMessage: ${apiMessage}`;
     }
     window
     .alert(errorMessage);
