@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,14 +28,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@CrossOrigin(origins = { "http://localhost:8080" })
 @RequestMapping("/api")
 @Tag(name = "Clients", description = "Operations to manage clients")
 public class ClientController {
 	@Autowired
 	private IClientService clientService;
 
-	@CrossOrigin(origins = "http://localhost:4200")
 	@GetMapping("/clients")
 	@Operation(summary = "List clients", description = "Returns all registered clients.")
 	@ApiResponses({
@@ -47,7 +44,6 @@ public class ClientController {
 		return ResponseEntity.ok(clientService.findAll());
 	}
 
-	@CrossOrigin(origins = "http://localhost:4200")
 	@PostMapping("/client")
 	@Operation(summary = "Create client", description = "Saves a new client.")
 	@ApiResponses({
@@ -71,7 +67,6 @@ public class ClientController {
 		return new ResponseEntity<>(serviceReponse, HttpStatus.OK);
 	}
 
-	@CrossOrigin(origins = "http://localhost:4200")
 	@DeleteMapping("/clients/{id}")
 	@Operation(summary = "Delete client", description = "Deletes the client with the given id.")
 	@ApiResponses({
