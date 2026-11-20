@@ -52,15 +52,22 @@ export class RegistrationComponent implements OnInit {
 
     const client: Client = { id: 0, ...this.form.value };
 
-    this.clientService.saveClient(client).subscribe(() => {
-      // resetForm also clears the "submitted" state so fields don't show red
-      this.formDirective.resetForm();
-      this.getClients();
+    // On failure ClientService already alerts the user; the typed data is kept so they can retry
+    this.clientService.saveClient(client).subscribe({
+      next: () => {
+        // resetForm also clears the "submitted" state so fields don't show red
+        this.formDirective.resetForm();
+        this.getClients();
+      },
+      error: () => {}
     });
   }
 
   onDelete(client: Client): void {
-    this.clientService.deleteClient(client.id).subscribe(() => this.getClients());
+    this.clientService.deleteClient(client.id).subscribe({
+      next: () => this.getClients(),
+      error: () => {}
+    });
   }
 
   getClients(): void {
