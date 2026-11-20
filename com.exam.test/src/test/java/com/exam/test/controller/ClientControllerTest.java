@@ -44,6 +44,9 @@ class ClientControllerTest {
 			"{\"firstName\":\"Ann\",\"lastName\":\"Lee\",\"surname\":\"Ray\","
 			+ "\"phone\":\"5551234\",\"email\":\"ann@example.com\"}";
 
+	private static final ClientDto SAVED_CLIENT =
+			new ClientDto(1, "Ann", "Lee", "Ray", "5551234", "ann@example.com");
+
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -81,7 +84,7 @@ class ClientControllerTest {
 	@Test
 	@DisplayName("POST /api/client saves a valid client and returns success")
 	void saveClient_ok() throws Exception {
-		when(clientService.save(any(ClientDto.class))).thenReturn(1);
+		when(clientService.save(any(ClientDto.class))).thenReturn(SAVED_CLIENT);
 
 		mockMvc.perform(post("/api/client").contentType(MediaType.APPLICATION_JSON).content(VALID_CLIENT))
 				.andExpect(status().isOk())
@@ -92,7 +95,7 @@ class ClientControllerTest {
 	@Test
 	@DisplayName("POST /api/client passes phone and email to the service")
 	void saveClient_mapsEmail() throws Exception {
-		when(clientService.save(any(ClientDto.class))).thenReturn(1);
+		when(clientService.save(any(ClientDto.class))).thenReturn(SAVED_CLIENT);
 
 		mockMvc.perform(post("/api/client").contentType(MediaType.APPLICATION_JSON).content(VALID_CLIENT))
 				.andExpect(status().isOk());

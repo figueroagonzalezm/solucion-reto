@@ -132,6 +132,10 @@ Database settings are read from environment variables, with these defaults
 | `DB_USER` | `test` |
 | `DB_PASSWORD` | `test` |
 
+Data access uses Spring Data JPA (Hibernate). The schema is created by `db/init.sql`, not by
+Hibernate: the API runs with `spring.jpa.hibernate.ddl-auto=validate`, so it **fails at startup
+if the `clients` table is missing or does not match the entity** (run `init.sql` first).
+
 ## 3. Frontend (Angular)
 
 ```bash
@@ -165,7 +169,11 @@ cd com.exam.test
 - `ClientControllerTest` (`@WebMvcTest`): every endpoint and error mapping of
   `GlobalExceptionHandler` (200, 204, 400, 404, 409, 500). No database needed.
 - `ClientServiceTest`: entity/DTO mapping (including `email`) and the not-found case on delete.
-- `TestApplicationTests`: checks that the Spring context starts, so it **does** need PostgreSQL running.
+- `ClientRepositoryTest` (`@DataJpaTest`): the JPA mapping against the real PostgreSQL schema. Each test is rolled back.
+- `TestApplicationTests`: checks that the Spring context starts and that the entity matches the schema
+  (`ddl-auto=validate`).
+
+`ClientRepositoryTest` and `TestApplicationTests` **need PostgreSQL running**; the others do not.
 
 ### Frontend (Jasmine + Karma)
 
@@ -192,8 +200,8 @@ If Chrome is not on the default path, set `CHROME_BIN` to its executable.
 │       ├── config/         # OpenAPI configuration
 │       ├── controller/     # REST controller
 │       ├── service/        # Business logic
-│       ├── respository/    # JDBC repository
-│       └── model/          # Entity and DTOs
+│       ├── respository/    # Spring Data JPA repository
+│       └── model/          # JPA entity and DTOs
 ├── my-app-exam/            # Angular app
 │   └── src/app/
 │       ├── components/registration/   # Client form and table

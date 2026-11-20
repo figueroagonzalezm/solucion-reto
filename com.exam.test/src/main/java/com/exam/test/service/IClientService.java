@@ -5,7 +5,7 @@ import com.exam.test.model.dtos.ClientDto;
 
 public interface IClientService {
 	public List<ClientDto> findAll();
-	 public int  save(ClientDto client);
+	 public ClientDto save(ClientDto client);
 	 /** @throws com.exam.test.exception.ClientNotFoundException if the client does not exist */
 	 public void deleteById(int id);
 }

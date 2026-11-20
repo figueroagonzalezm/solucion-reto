@@ -58,11 +58,9 @@ public class ClientController {
 			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Client data to save")
 			@RequestBody ClientDto client) {
 		ServiceResponse serviceReponse = new ServiceResponse();
-		int result = clientService.save(client);
-		if (result == 1) {
-			serviceReponse.setSuccess(true);
-			serviceReponse.setMessage("Client saved with sucesss");
-		}
+		clientService.save(client);
+		serviceReponse.setSuccess(true);
+		serviceReponse.setMessage("Client saved with sucesss");
 
 		return new ResponseEntity<>(serviceReponse, HttpStatus.OK);
 	}

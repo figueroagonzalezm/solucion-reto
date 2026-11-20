@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,13 +22,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.exam.test.exception.ClientNotFoundException;
 import com.exam.test.model.Client;
 import com.exam.test.model.dtos.ClientDto;
-import com.exam.test.respository.IClientRepository;
+import com.exam.test.respository.ClientRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ClientServiceTest {
 
 	@Mock
-	private IClientRepository clientRepository;
+	private ClientRepository clientRepository;
 
 	@InjectMocks
 	private ClientService clientService;
@@ -68,13 +70,17 @@ class ClientServiceTest {
 	}
 
 	@Test
-	@DisplayName("save maps the DTO to the entity (including email) and returns the affected rows")
-	void save_mapsFieldsAndReturnsRows() {
-		when(clientRepository.save(any(Client.class))).thenReturn(1);
+	@DisplayName("save maps the DTO to the entity (including email) and returns the saved client with its id")
+	void save_mapsFieldsAndReturnsSavedClient() {
+		// Simulate the database assigning the identity
+		when(clientRepository.save(any(Client.class))).thenAnswer(invocation -> {
+			Client c = invocation.getArgument(0);
+			c.setId(5);
+			return c;
+		});
 
-		int rows = clientService.save(new ClientDto(0, "Ann", "Lee", "Ray", "5551234", "ann@example.com"));
+		ClientDto result = clientService.save(new ClientDto(0, "Ann", "Lee", "Ray", "5551234", "ann@example.com"));
 
-		assertEquals(1, rows);
 		ArgumentCaptor<Client> captor = ArgumentCaptor.forClass(Client.class);
 		verify(clientRepository).save(captor.capture());
 		Client saved = captor.getValue();
@@ -83,12 +89,15 @@ class ClientServiceTest {
 		assertEquals("Ray", saved.getSurname());
 		assertEquals("5551234", saved.getPhone());
 		assertEquals("ann@example.com", saved.getEmail());
+
+		assertEquals(5, result.getId());
+		assertEquals("ann@example.com", result.getEmail());
 	}
 
 	@Test
-	@DisplayName("deleteById succeeds when the repository deletes a row")
+	@DisplayName("deleteById deletes the client when it exists")
 	void deleteById_ok() {
-		when(clientRepository.deleteById(7)).thenReturn(1);
+		when(clientRepository.existsById(7)).thenReturn(true);
 
 		clientService.deleteById(7);
 
@@ -96,12 +105,13 @@ class ClientServiceTest {
 	}
 
 	@Test
-	@DisplayName("deleteById throws ClientNotFoundException when no row was deleted")
+	@DisplayName("deleteById throws ClientNotFoundException and deletes nothing when the client does not exist")
 	void deleteById_notFound() {
-		when(clientRepository.deleteById(99)).thenReturn(0);
+		when(clientRepository.existsById(99)).thenReturn(false);
 
 		ClientNotFoundException ex = assertThrows(ClientNotFoundException.class, () -> clientService.deleteById(99));
 
 		assertEquals("Client with id 99 not found", ex.getMessage());
+		verify(clientRepository, never()).deleteById(anyInt());
 	}
 }

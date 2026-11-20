@@ -1,75 +1,54 @@
 package com.exam.test.service;
 
-import java.util.ArrayList;
 import java.util.List;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.exam.test.exception.ClientNotFoundException;
 import com.exam.test.model.Client;
 import com.exam.test.model.dtos.ClientDto;
-import com.exam.test.respository.IClientRepository;
+import com.exam.test.respository.ClientRepository;
 
 
 @Service
 public class ClientService implements IClientService {
 
 	@Autowired
-	private IClientRepository clientRepository;
-	
+	private ClientRepository clientRepository;
 
-	 
 	@Override
+	@Transactional(readOnly = true)
 	public List<ClientDto> findAll() {
-		List<ClientDto> clients = new ArrayList<ClientDto>();
-		
-		try {
-			clientRepository.findAll().forEach((c) -> {
-				//convert  this to auto mapped
-				ClientDto cl = new ClientDto(c.getId(), c.getFirstName(), c.getLastName(), c.getSurname(), c.getPhone(), c.getEmail());
-				clients.add(cl);
-			});
-        
-		}catch(Exception ex){
-			throw ex;
-		}
-		
-		return clients;
-	}
-
-
-
-	@Override
-	public int save(ClientDto clientdto) {
-		int row = 0;
-		try {
-			
-			Client client = new Client();
-			
-			//convert  this to auto mapped
-			
-			client.setFirstName(clientdto.getFirstName());
-			client.setLastName(clientdto.getLastName());
-			client.setSurname(clientdto.getSurname());
-			client.setPhone(clientdto.getPhone());
-			client.setEmail(clientdto.getEmail());
-			
-			row = clientRepository.save(client);
-        
-		}catch(Exception ex){
-			throw ex;
-		}
-		
-		return row;
+		return clientRepository.findAll().stream().map(this::toDto).toList();
 	}
 
 	@Override
+	@Transactional
+	public ClientDto save(ClientDto clientdto) {
+		Client client = new Client();
+		client.setFirstName(clientdto.getFirstName());
+		client.setLastName(clientdto.getLastName());
+		client.setSurname(clientdto.getSurname());
+		client.setPhone(clientdto.getPhone());
+		client.setEmail(clientdto.getEmail());
+
+		return toDto(clientRepository.save(client));
+	}
+
+	@Override
+	@Transactional
 	public void deleteById(int id) {
-		if (clientRepository.deleteById(id) == 0) {
+		// deleteById is a silent no-op for a missing id, so check explicitly to return 404
+		if (!clientRepository.existsById(id)) {
 			throw new ClientNotFoundException(id);
 		}
+		clientRepository.deleteById(id);
+	}
+
+	private ClientDto toDto(Client c) {
+		return new ClientDto(c.getId(), c.getFirstName(), c.getLastName(), c.getSurname(), c.getPhone(), c.getEmail());
 	}
 
 }

@@ -1,33 +1,11 @@
 package com.exam.test.respository;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.exam.test.model.Client;
 
+/** Spring Data JPA repository: findAll, save, existsById and deleteById come from {@link JpaRepository}. */
 @Repository
-public class ClientRepository implements IClientRepository {
-
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
-	
-	@Override
-	public List<Client> findAll() {
-		return jdbcTemplate.query("select id,first_name,last_name,surname,phone,email from clients", BeanPropertyRowMapper.newInstance(Client.class));
-	}
-
-	@Override
-	public int save(Client client) {		
-		return jdbcTemplate.update("insert into clients (first_name, last_name, surname, phone, email) values (?, ?, ?, ?, ?)", new Object[] {client.getFirstName(), client.getLastName(), client.getSurname(), client.getPhone(), client.getEmail()});
-	}
-
-	@Override
-	public int deleteById(int id) {
-		return jdbcTemplate.update("delete from clients where id = ?", id);
-	}
-
+public interface ClientRepository extends JpaRepository<Client, Integer> {
 }
