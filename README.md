@@ -131,6 +131,11 @@ Database settings are read from environment variables, with these defaults
 | `DB_URL` | `jdbc:postgresql://localhost:5432/db_test` |
 | `DB_USER` | `test` |
 | `DB_PASSWORD` | `test` |
+| `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:4200` |
+
+`APP_CORS_ALLOWED_ORIGINS` is a comma-separated list of browser origins allowed to call `/api/**`
+(property `app.cors.allowed-origins`), e.g. `https://app.example.com,https://admin.example.com`.
+Swagger UI is served by the API itself (same origin), so it does not need to be listed.
 
 Data access uses Spring Data JPA (Hibernate). The schema is created by `db/init.sql`, not by
 Hibernate: the API runs with `spring.jpa.hibernate.ddl-auto=validate`, so it **fails at startup
@@ -146,7 +151,12 @@ npm start                       # same as: npx ng serve
 
 Open **http://localhost:4200**. The API URL is set in
 [`my-app-exam/src/environments/environment.ts`](my-app-exam/src/environments/environment.ts)
-(`apiUrl`, default `http://localhost:8080/api`). The API allows CORS from `http://localhost:4200`.
+(`apiUrl`, default `http://localhost:8080/api`). The API allows CORS from `http://localhost:4200` by default.
+
+The production build (`environment.prod.ts`) uses the relative URL `/api`, so it calls the API on the
+host that serves the app (for example behind a reverse proxy). If the frontend is hosted on a different
+origin than the API, set `apiUrl` to the API's full URL and add the frontend's origin to
+`APP_CORS_ALLOWED_ORIGINS`.
 
 ### Client form
 
