@@ -8,5 +8,6 @@ public interface IClientRepository {
 	
   public List<Client> findAll(); 
   public int  save(Client client);
+  public int  deleteById(int id);
   
 }

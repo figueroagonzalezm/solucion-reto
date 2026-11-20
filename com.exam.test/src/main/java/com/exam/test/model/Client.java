@@ -10,4 +10,5 @@ public class Client {
 	String lastName;
 	String surname;
 	String phone;
+	String email;
 }

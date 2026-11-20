@@ -17,12 +17,17 @@ public class ClientRepository implements IClientRepository {
 	
 	@Override
 	public List<Client> findAll() {
-		return jdbcTemplate.query("select id,first_name,last_name,surname,phone from clients", BeanPropertyRowMapper.newInstance(Client.class));
+		return jdbcTemplate.query("select id,first_name,last_name,surname,phone,email from clients", BeanPropertyRowMapper.newInstance(Client.class));
 	}
 
 	@Override
 	public int save(Client client) {		
-		return jdbcTemplate.update("insert into clients (first_name, last_name, surname, phone) values (?, ?, ?, ?)", new Object[] {client.getFirstName(), client.getLastName(), client.getSurname(), client.getPhone()});
+		return jdbcTemplate.update("insert into clients (first_name, last_name, surname, phone, email) values (?, ?, ?, ?, ?)", new Object[] {client.getFirstName(), client.getLastName(), client.getSurname(), client.getPhone(), client.getEmail()});
+	}
+
+	@Override
+	public int deleteById(int id) {
+		return jdbcTemplate.update("delete from clients where id = ?", id);
 	}
 
 }
