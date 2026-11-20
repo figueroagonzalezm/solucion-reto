@@ -73,7 +73,7 @@ The API starts on **http://localhost:8080**.
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
 
-Build and run the tests (requires the database to be running):
+Build and run the tests (no database needed, see [Tests](#tests)):
 
 ```bash
 ./mvnw clean package
@@ -169,11 +169,14 @@ cd com.exam.test
 - `ClientControllerTest` (`@WebMvcTest`): every endpoint and error mapping of
   `GlobalExceptionHandler` (200, 204, 400, 404, 409, 500). No database needed.
 - `ClientServiceTest`: entity/DTO mapping (including `email`) and the not-found case on delete.
-- `ClientRepositoryTest` (`@DataJpaTest`): the JPA mapping against the real PostgreSQL schema. Each test is rolled back.
+- `ClientRepositoryTest` (`@DataJpaTest`): the JPA mapping (save, find, delete) against the schema.
 - `TestApplicationTests`: checks that the Spring context starts and that the entity matches the schema
   (`ddl-auto=validate`).
 
-`ClientRepositoryTest` and `TestApplicationTests` **need PostgreSQL running**; the others do not.
+**The API tests do not need PostgreSQL.** They run on in-memory H2 in PostgreSQL mode
+(`src/test/resources/application.properties`), which loads the same `db/init.sql` used for
+PostgreSQL, so a mismatch between the entity and the schema still fails the tests. PostgreSQL is only
+used when you run the API (`src/main/resources/application.properties`).
 
 ### Frontend (Jasmine + Karma)
 

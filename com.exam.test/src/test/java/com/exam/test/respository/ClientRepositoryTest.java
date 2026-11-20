@@ -14,9 +14,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import com.exam.test.model.Client;
 
 /**
- * Checks the JPA mapping against the real PostgreSQL schema (db/init.sql).
- * Needs the database running. Each test runs in a transaction that is rolled back,
- * so no rows are left behind.
+ * Checks the JPA mapping against the schema in db/init.sql, loaded into in-memory H2
+ * (see src/test/resources/application.properties). No external database is needed.
+ * replace = NONE keeps that configured datasource instead of a generated embedded one.
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
