@@ -1,0 +1,154 @@
+# Full Stack Exam — Clients
+
+Full stack application to manage clients:
+
+- **`com.exam.test`** — REST API (Spring Boot 3.0.6, Java 17, PostgreSQL, Swagger/OpenAPI).
+- **`my-app-exam`** — Frontend (Angular 13 + Angular Material).
+
+See [`SOLUTION.md`](SOLUTION.md) for what was implemented and the technical decisions.
+
+## Requirements
+
+| Tool | Version |
+|------|---------|
+| JDK | **17** |
+| Node.js / npm | 16 or newer (tested with Node 24) |
+| PostgreSQL | 12 or newer (tested with 16) |
+
+> **Use JDK 17 to build the API.** Newer JDKs (23+) disable implicit annotation processing,
+> which breaks Lombok with the version managed by Spring Boot 3.0.x. Make sure `JAVA_HOME`
+> points to a JDK 17 before running Maven:
+>
+> ```bash
+> # Windows (cmd)
+> set JAVA_HOME=C:\path\to\jdk-17
+> # Linux / macOS / Git Bash
+> export JAVA_HOME=/path/to/jdk-17
+> ```
+
+## 1. Database
+
+The API expects a PostgreSQL database named `db_test` with user `test` / password `test`
+(defaults, see [Configuration](#configuration)).
+
+### Option A — Docker
+
+```bash
+docker run -d --name exam-postgres \
+  -e POSTGRES_DB=db_test -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test \
+  -p 5432:5432 postgres:16
+```
+
+### Option B — Local PostgreSQL
+
+```sql
+CREATE USER test WITH PASSWORD 'test';
+CREATE DATABASE db_test OWNER test;
+```
+
+### Create the table
+
+Run [`com.exam.test/db/init.sql`](com.exam.test/db/init.sql) against `db_test`:
+
+```bash
+# Docker
+docker exec -i exam-postgres psql -U test -d db_test < com.exam.test/db/init.sql
+
+# Local psql
+psql -U test -d db_test -f com.exam.test/db/init.sql
+```
+
+The script is idempotent: it creates the `clients` table if missing and adds the `email`
+column to databases created before it existed.
+
+## 2. API (Spring Boot)
+
+```bash
+cd com.exam.test
+./mvnw spring-boot:run          # Windows cmd: mvnw.cmd spring-boot:run
+```
+
+The API starts on **http://localhost:8080**.
+
+- Swagger UI: http://localhost:8080/swagger-ui.html
+- OpenAPI JSON: http://localhost:8080/v3/api-docs
+
+Build and run the tests (requires the database to be running):
+
+```bash
+./mvnw clean package
+```
+
+### Endpoints
+
+| Method | Path | Description | Responses |
+|--------|------|-------------|-----------|
+| `GET` | `/api/clients` | List all clients | `200` |
+| `POST` | `/api/client` | Create a client | `200` |
+| `DELETE` | `/api/clients/{id}` | Delete a client | `204` deleted, `404` not found |
+
+Example:
+
+```bash
+curl -X POST http://localhost:8080/api/client \
+  -H "Content-Type: application/json" \
+  -d '{"firstName":"Ann","lastName":"Lee","phone":"5551234","email":"ann@example.com"}'
+
+curl http://localhost:8080/api/clients
+
+curl -i -X DELETE http://localhost:8080/api/clients/1
+```
+
+### Configuration
+
+Database settings are read from environment variables, with these defaults
+(`com.exam.test/src/main/resources/application.properties`):
+
+| Variable | Default |
+|----------|---------|
+| `DB_URL` | `jdbc:postgresql://localhost:5432/db_test` |
+| `DB_USER` | `test` |
+| `DB_PASSWORD` | `test` |
+
+## 3. Frontend (Angular)
+
+```bash
+cd my-app-exam
+npm install
+npm start                       # same as: npx ng serve
+```
+
+Open **http://localhost:4200**. The API URL is set in
+[`my-app-exam/src/environments/environment.ts`](my-app-exam/src/environments/environment.ts)
+(`apiUrl`, default `http://localhost:8080/api`). The API allows CORS from `http://localhost:4200`.
+
+### Client form
+
+- Required fields: First Name, Last Name, Phone, Email. Missing fields are listed in an
+  error message and highlighted in red when saving.
+- Phone accepts digits only.
+- Email must match the `user@domain.com` format.
+- The form is cleared after a successful save.
+- Each row of the table has a **Delete** button (calls `DELETE /api/clients/{id}`).
+
+## Project structure
+
+```
+.
+├── com.exam.test/          # Spring Boot API
+│   ├── db/init.sql         # PostgreSQL schema
+│   └── src/main/java/com/exam/test/
+│       ├── config/         # OpenAPI configuration
+│       ├── controller/     # REST controller
+│       ├── service/        # Business logic
+│       ├── respository/    # JDBC repository
+│       └── model/          # Entity and DTOs
+├── my-app-exam/            # Angular app
+│   └── src/app/
+│       ├── components/registration/   # Client form and table
+│       ├── services/client.service.ts # HTTP client for the API
+│       └── interfaces/client.ts
+├── ExamDatabaseObjects.sql # Original SQL Server script (reference only)
+├── README.md
+└── SOLUTION.md
+```
